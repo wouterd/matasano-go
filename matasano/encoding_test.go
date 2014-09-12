@@ -13,3 +13,16 @@ func TestHexToBase64(t *testing.T) {
     t.Error("Expected ", expected, ", got ", result)
   }
 }
+
+func TestFixedXor(t *testing.T) {
+	input := "1c0111001f010100061a024b53535009181c"
+	mask := "686974207468652062756c6c277320657965"
+	expected := "746865206b696420646f6e277420706c6179"
+	result, err := FixedXor(input, mask)
+	if err != nil {
+		t.Error("Error occured when converting from hex")
+	}
+	if result != expected {
+		t.Error("Expected ", expected, ", but got ", result)
+	}
+}
