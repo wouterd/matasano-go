@@ -30,11 +30,21 @@ func FixedXor(input string, mask string) (output string, err error) {
 	return hex.EncodeToString(resultBytes), nil
 }
 
+func FixedXorWithSingleByteMask(input []byte, mask byte) []byte {
+	return bytes.Map(makeSingleCharacterXorClojure(mask), input)
+}
+
 func makeFixedXorClojure(mask []byte) func(r rune) rune {
 	i := 0
 	return func(r rune) rune {
 		result := rune(byte(r) ^ mask[i])
 		i++
 		return result
+	}
+}
+
+func makeSingleCharacterXorClojure(mask byte) func(r rune) rune {
+	return func(r rune) rune {
+		return rune(byte(r) ^ mask)
 	}
 }
