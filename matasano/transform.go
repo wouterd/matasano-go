@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/base64"
 	"bytes"
+	"errors"
 )
 
 func HexToBase64(input string) (output string, err error) {
@@ -40,9 +41,24 @@ func RepeatingXor(input []byte, mask []byte) []byte {
 
 func makeRepeatingXorClojure(mask [] byte) func(r rune) rune {
 	i := 0
+	maskLength := len(mask)
 	return func(r rune) rune {
 		result := rune(byte(r) ^ mask[i])
-		i = (i + 1) % len(mask)
+		i = (i+1)%maskLength
 		return result
 	}
+}
+
+func HemingDistance(a []byte, b []byte) (uint, error) {
+	if len(a) != len(b) {
+		return 0, errors.New("Both arrays should be the same length.")
+	}
+	diffBits := uint(0)
+	for i := 0 ; i < len(a) ; i++ {
+		diff := a[i] ^ b[i]
+		for j := uint(0) ; j < 8 ; j++ {
+			diffBits += uint((diff >> j) & 1)
+		}
+	}
+	return diffBits, nil
 }

@@ -58,3 +58,11 @@ func TestRepeatingXorTwiceNetsInput(t *testing.T) {
 		t.Error("XORing twice should return the input, expected", input, "but got", result)
 	}
 }
+
+func TestHemingDistance(t *testing.T) {
+	a := "this is a test"
+	b := "wokka wokka!!!"
+	distance, err := HemingDistance(([]byte)(a), ([]byte)(b))
+	require.Nil(t, err, "There should be no error, but there was: {}", err)
+	require.Equal(t, 37, distance, "Distance should be 37")
+}
