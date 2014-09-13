@@ -68,7 +68,7 @@ func findCandidate(c chan <- Candidate, bytes []byte, line int) {
 		cypher := byte(i)
 		decoded := matasano.FixedXorWithSingleByteMask(bytes, cypher)
 		phrase := string(decoded)
-		englishness := stdDevFromCharFrequencies(phrase)
+		englishness := 1 / stdDevFromCharFrequencies(phrase)
 		if best.englishness < englishness {
 			best = Candidate{englishness, phrase, cypher, line}
 		}
@@ -106,5 +106,5 @@ func stdDevFromCharFrequencies(phrase string) float64 {
 		freq := float64(strings.Count(lowerCased, key)) / float64(total)
 		s2 += math.Pow(freq-value, 2)
 	}
-	return 1 / math.Sqrt(s2)
+	return math.Sqrt(s2)
 }
