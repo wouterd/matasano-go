@@ -2,39 +2,91 @@ package main
 
 import (
 	"flag"
-	"github.com/wouterd/matasano-go/matasano"
-	"encoding/hex"
 	"fmt"
 	"math"
 	"strings"
+	"io/ioutil"
+	"github.com/wouterd/matasano-go/matasano"
+	"encoding/hex"
 )
 
 type Candidate struct {
 	englishness float64
 	phrase      string
 	cypher      byte
+	line        int
 }
 
 func main() {
+	filenamep := flag.String("file", "", "The file to read the encrypted lines from (hex encoded byte buffers)")
 	flag.Parse()
-	encrypted := flag.Arg(0)
-	bytes, err := hex.DecodeString(encrypted)
+	encrypted, err := getEncryptedText(*filenamep)
 	if err != nil {
-		fmt.Println("Input message is not hex encoded")
 		return
 	}
+	lines := strings.Split(encrypted, "\n")
+
+	candidates := make(chan Candidate, 20)
+	best := make(chan Candidate)
+
+	go resolveBestCandidate(candidates, len(lines), best)
+	fmt.Println("MAIN: Started go routine to resolve best candidate..")
+
+	for lineIdx, line := range lines {
+		bytes, err := hex.DecodeString(line)
+		lineNr := lineIdx + 1
+		if err != nil {
+			fmt.Println("Line", lineNr, "was not hex encoded.")
+			return
+		}
+		go findCandidate(candidates, bytes, lineNr)
+		fmt.Println("MAIN: Started go routine 'findCandidate' to resolve line", lineNr, "..")
+	}
+
+	result := <-best
+	hexOfCypherByte := "0x" + hex.EncodeToString([]byte{result.cypher})
+	fmt.Println("MAIN: Most english phrase: "+result.phrase+"\n, with cypher", hexOfCypherByte, "at line", result.line)
+}
+
+func resolveBestCandidate(in<- chan Candidate, amCandidates int, out chan <- Candidate) {
+	candidates := 0
 	var current Candidate
+	for candidates < amCandidates {
+		candidate := <-in
+		fmt.Println("resolveBestCandidate: Received a candidate..")
+		candidates++
+		if candidate.englishness > current.englishness {
+			current = candidate
+		}
+	}
+	out <- current
+}
+
+func findCandidate(c chan <- Candidate, bytes []byte, line int) {
+	var best Candidate
 	for i := 0 ; i < 256 ; i++ {
 		cypher := byte(i)
 		decoded := matasano.FixedXorWithSingleByteMask(bytes, cypher)
 		phrase := string(decoded)
 		englishness := stdDevFromCharFrequencies(phrase)
-		if current.englishness < englishness {
-			current = Candidate{englishness, phrase, cypher}
+		if best.englishness < englishness {
+			best = Candidate{englishness, phrase, cypher, line}
 		}
 	}
-	hexOfCypherByte := "0x" + hex.EncodeToString([]byte{current.cypher})
-	fmt.Println("Most english phrase: "+current.phrase+"\n, with cypher", hexOfCypherByte)
+	c <- best
+}
+
+func getEncryptedText(filename string) (string, error) {
+	if filename == "" {
+		return flag.Arg(0), nil
+	} else {
+		contents, err := ioutil.ReadFile(filename)
+		if err != nil {
+			fmt.Println("Error reading contents from input file", err)
+			return "", err
+		}
+		return string(contents), nil
+	}
 }
 
 func stdDevFromCharFrequencies(phrase string) float64 {
