@@ -4,6 +4,7 @@ import (
 	"testing"
 	"github.com/stretchr/testify/require"
 	"encoding/hex"
+	"encoding/base64"
 )
 
 func TestHexToBase64(t *testing.T) {
@@ -65,4 +66,15 @@ func TestHemingDistance(t *testing.T) {
 	distance, err := HemingDistance(([]byte)(a), ([]byte)(b))
 	require.Nil(t, err, "There should be no error, but there was: {}", err)
 	require.Equal(t, 37, distance, "Distance should be 37")
+}
+
+func TestDecryptAES128ECB(t *testing.T) {
+	key   := "YELLOW SUBMARINE"
+	input := "CRIwqt4+szDbqkNY+I0qbDe3LQz0wiw0SuxBQtAM5TDdMbjCMD/venUDW9BL"
+	bytes, err := base64.StdEncoding.DecodeString(input)
+	require.Nil(t, err)
+	result, err := DecryptAES128ECB(bytes, []byte(key))
+	require.Nil(t, err)
+	actual := string(result)
+	require.Contains(t, actual, "I'm back and I'm ringin' the bel")
 }

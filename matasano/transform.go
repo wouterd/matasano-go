@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"bytes"
 	"errors"
+	"crypto/aes"
 )
 
 func HexToBase64(input string) (output string, err error) {
@@ -61,4 +62,25 @@ func HemingDistance(a []byte, b []byte) (uint, error) {
 		}
 	}
 	return diffBits, nil
+}
+
+func DecryptAES128ECB(encrypted []byte, key []byte) ([]byte, error) {
+	cipher, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	decrypted := new(bytes.Buffer)
+	input := bytes.NewBuffer(encrypted)
+	bufIn := make([]byte, cipher.BlockSize())
+	bufOut := make([]byte, cipher.BlockSize())
+	for {
+		_, err := input.Read(bufIn)
+		if err != nil {
+			// EOF
+			break
+		}
+		cipher.Decrypt(bufOut, bufIn)
+		decrypted.Write(bufOut)
+	}
+	return decrypted.Bytes(), nil
 }
