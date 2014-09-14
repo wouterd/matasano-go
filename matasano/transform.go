@@ -108,10 +108,11 @@ func CountMatchingBlocks(data []byte, blockSize int) int {
 }
 
 func PadBufferUsingPKCS7(input []byte, blocksize int) []byte {
-	if len(input) >= blocksize {
+	remainder := len(input) % blocksize
+	if remainder == 0 {
 		return input
 	}
-	padding := byte(blocksize - len(input))
+	padding := byte(blocksize - remainder)
 	var output bytes.Buffer
 	output.Write(input)
 	for i := byte(0) ; i < padding ; i++ {
