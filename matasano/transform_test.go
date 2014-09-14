@@ -86,3 +86,17 @@ func TestCountMatchingBlocks(t *testing.T) {
 	require.Equal(t, 1, CountMatchingBlocks(input, 2))
 	require.Equal(t, 0, CountMatchingBlocks(input, 3))
 }
+
+func TestPadBufferUsingPKCS7Adds4(t *testing.T) {
+	input := []byte("YELLOW SUBMARINE")
+	result := PadBufferUsingPKCS7(input, 20)
+	require.Equal(t, 20, len(result))
+	require.Equal(t, input, result[:16])
+	require.Equal(t, []byte{4,4,4,4}, result[16:])
+}
+
+func TestPadBufferUsingPKCS7ReturnsInputWhenLenIsBlockSize(t *testing.T) {
+	input := []byte("YELLOW SUBMARINE")
+	result := PadBufferUsingPKCS7(input, 16)
+	require.Equal(t, result, input)
+}
