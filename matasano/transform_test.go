@@ -78,3 +78,11 @@ func TestDecryptAES128ECB(t *testing.T) {
 	actual := string(result)
 	require.Contains(t, actual, "I'm back and I'm ringin' the bel")
 }
+
+func TestCountMatchingBlocks(t *testing.T) {
+	input := []byte("ABCDAB")
+
+	require.Equal(t, 2, CountMatchingBlocks(input, 1))
+	require.Equal(t, 1, CountMatchingBlocks(input, 2))
+	require.Equal(t, 0, CountMatchingBlocks(input, 3))
+}

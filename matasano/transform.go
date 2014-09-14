@@ -84,3 +84,25 @@ func DecryptAES128ECB(encrypted []byte, key []byte) ([]byte, error) {
 	}
 	return decrypted.Bytes(), nil
 }
+
+/*
+	Counts the amount of matching blocks in a byte array given a certain block size (in bytes).
+	Every match will be single-counted, so if block a matches block b, then block b matching block a will not be
+	counted.
+ */
+func CountMatchingBlocks(data []byte, blockSize int) int {
+	blocks := len(data) / blockSize
+	matchingBlocks := 0
+	for i := 0 ; i < blocks ; i++ {
+		offset := i * blockSize
+		this := data[offset:offset+blockSize]
+		for j := i + 1 ; j < blocks ; j++ {
+			offset := j * blockSize
+			that := data[offset:offset+blockSize]
+			if bytes.Equal(this, that) {
+				matchingBlocks++
+			}
+		}
+	}
+	return matchingBlocks
+}
